@@ -23,6 +23,7 @@ resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   CostControl: 'Ignore'}
 }
 
+
 // Variables for naming conventions
 var projectPrefix = toLower(environmentName)
 var storageName = take('${projectPrefix}store', 24)
@@ -74,6 +75,18 @@ module adfPipeline 'modules/adf-pipeline.bicep' = {
     dataFactoryName: adfName
     sqlServerName: sql.outputs.serverName
     sqlDatabaseName: sql.outputs.databaseName
+  }
+}
+
+module adfIdentity 'modules/adf-identity.bicep' = {
+  name: 'adfIdentitySetup'
+  scope: rg
+  dependsOn: [
+    adf   // 👈 ensures ADF is deployed before identity is configured
+  ]
+  params: {
+    dataFactoryName: adfName
+    storageAccountId: storage.outputs.id
   }
 }
 

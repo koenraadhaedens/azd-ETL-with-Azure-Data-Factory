@@ -8,6 +8,9 @@ param storageAccountName string
 resource dataFactory 'Microsoft.DataFactory/factories@2018-06-01' = {
   name: dataFactoryName
   location: resourceGroup().location
+  identity: {
+    type: 'SystemAssigned'   // 👈 this line enables managed identity
+  }
 }
 
 // 2️⃣ Linked Service for Blob Storage
@@ -71,6 +74,9 @@ resource datasetSql 'Microsoft.DataFactory/factories/datasets@2018-06-01' = {
   }
 }
 
+
 // 6️⃣ (Optional) Output values
 output name string = dataFactory.name
 output id string = dataFactory.id
+output identityPrincipalId string = dataFactory.identity.principalId
+
