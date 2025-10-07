@@ -28,6 +28,7 @@ resource linkedServiceSql 'Microsoft.DataFactory/factories/linkedServices@2018-0
 // 3️⃣ Dataset for Blob (CSV input)
 resource datasetBlob 'Microsoft.DataFactory/factories/datasets@2018-06-01' = {
   name: '${dataFactoryName}/InputBlobDataset'
+  dependsOn: [ linkedServiceStorage ]  
   properties: {
     linkedServiceName: {
       referenceName: storageLinkedServiceName
@@ -48,6 +49,7 @@ resource datasetBlob 'Microsoft.DataFactory/factories/datasets@2018-06-01' = {
 // 4️⃣ Dataset for SQL (Output)
 resource datasetSql 'Microsoft.DataFactory/factories/datasets@2018-06-01' = {
   name: '${dataFactoryName}/OutputSQLDataset'
+  dependsOn: [ linkedServiceSql ]   
   properties: {
     linkedServiceName: {
       referenceName: 'azuresqldatabaselinkedservice'
