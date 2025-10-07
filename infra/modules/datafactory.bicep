@@ -5,7 +5,8 @@ param sqlDatabaseName string
 
 //  Linked Service for SQL Database
 resource linkedServiceSql 'Microsoft.DataFactory/factories/linkedServices@2018-06-01' = {
-  name: '${dataFactoryName}/AzureSqlDatabaseLinkedService'
+  parent: dataFactory
+  name: 'AzureSqlDatabaseLinkedService'
   properties: {
     type: 'AzureSqlDatabase'
     typeProperties: {
@@ -16,7 +17,8 @@ resource linkedServiceSql 'Microsoft.DataFactory/factories/linkedServices@2018-0
 
 // Dataset for Blob (CSV input)
 resource datasetBlob 'Microsoft.DataFactory/factories/datasets@2018-06-01' = {
-  name: '${dataFactoryName}/InputBlobDataset'
+  parent: dataFactory
+  name: 'InputBlobDataset'
   properties: {
     linkedServiceName: {
       referenceName: storageLinkedServiceName
@@ -36,7 +38,8 @@ resource datasetBlob 'Microsoft.DataFactory/factories/datasets@2018-06-01' = {
 
 // Dataset for SQL (Output)
 resource datasetSql 'Microsoft.DataFactory/factories/datasets@2018-06-01' = {
-  name: '${dataFactoryName}/OutputSQLDataset'
+  name: 'OutputSQLDataset'
+  parent: dataFactory
   properties: {
     linkedServiceName: {
       referenceName: 'AzureSqlDatabaseLinkedService'
@@ -51,7 +54,8 @@ resource datasetSql 'Microsoft.DataFactory/factories/datasets@2018-06-01' = {
 
 // Simple Pipeline that copies from Blob to SQL
 resource pipeline 'Microsoft.DataFactory/factories/pipelines@2018-06-01' = {
-  name: '${dataFactoryName}/etl-demo-pipeline'
+  name: 'etl-demo-pipeline'
+  parent: dataFactory
   properties: {
     description: 'Demo ETL pipeline to copy data from Blob Storage to SQL Database'
     activities: [
@@ -91,4 +95,12 @@ resource pipeline 'Microsoft.DataFactory/factories/pipelines@2018-06-01' = {
   }
 }
 
+resource dataFactory 'Microsoft.DataFactory/factories@2018-06-01' = {
+  name: dataFactoryName
+  location: resourceGroup().location
+}
+
 output pipelineName string = pipeline.name
+output name string = dataFactory.name
+output id string = dataFactory.id
+
