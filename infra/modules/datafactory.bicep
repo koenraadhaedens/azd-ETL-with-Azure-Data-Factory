@@ -3,7 +3,7 @@ param storageLinkedServiceName string = 'AzureBlobStorageLinkedService'
 param sqlServerName string
 param sqlDatabaseName string
 
-// 1️⃣ Linked Service for SQL Database
+//  Linked Service for SQL Database
 resource linkedServiceSql 'Microsoft.DataFactory/factories/linkedServices@2018-06-01' = {
   name: '${dataFactoryName}/AzureSqlDatabaseLinkedService'
   properties: {
@@ -14,7 +14,7 @@ resource linkedServiceSql 'Microsoft.DataFactory/factories/linkedServices@2018-0
   }
 }
 
-// 2️⃣ Dataset for Blob (CSV input)
+// Dataset for Blob (CSV input)
 resource datasetBlob 'Microsoft.DataFactory/factories/datasets@2018-06-01' = {
   name: '${dataFactoryName}/InputBlobDataset'
   properties: {
@@ -34,7 +34,7 @@ resource datasetBlob 'Microsoft.DataFactory/factories/datasets@2018-06-01' = {
   }
 }
 
-// 3️⃣ Dataset for SQL (Output)
+// Dataset for SQL (Output)
 resource datasetSql 'Microsoft.DataFactory/factories/datasets@2018-06-01' = {
   name: '${dataFactoryName}/OutputSQLDataset'
   properties: {
@@ -49,7 +49,7 @@ resource datasetSql 'Microsoft.DataFactory/factories/datasets@2018-06-01' = {
   }
 }
 
-// 4️⃣ Simple Pipeline that copies from Blob to SQL
+// Simple Pipeline that copies from Blob to SQL
 resource pipeline 'Microsoft.DataFactory/factories/pipelines@2018-06-01' = {
   name: '${dataFactoryName}/etl-demo-pipeline'
   properties: {
