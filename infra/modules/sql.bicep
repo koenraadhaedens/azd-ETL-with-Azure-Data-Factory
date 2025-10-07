@@ -3,7 +3,7 @@ param dbName string
 param location string
 param administratorLogin string = 'sqladminuser'
 @secure()
-param administratorPassword string = 'ChangeThis123!'
+param administratorPassword string
 
 resource sqlServer 'Microsoft.Sql/servers@2022-02-01-preview' = {
   name: name
@@ -15,7 +15,8 @@ resource sqlServer 'Microsoft.Sql/servers@2022-02-01-preview' = {
 }
 
 resource sqlDb 'Microsoft.Sql/servers/databases@2022-02-01-preview' = {
-  name: '${sqlServer.name}/${dbName}'
+  parent: sqlServer
+  name: dbName
   location: location
   sku: {
     name: 'Basic'
@@ -28,4 +29,4 @@ resource sqlDb 'Microsoft.Sql/servers/databases@2022-02-01-preview' = {
 
 output serverName string = sqlServer.name
 output databaseName string = sqlDb.name
-output connectionString string = 'Server=tcp:${sqlServer.name}.database.windows.net,1433;Initial Catalog=${dbName};User ID=${administratorLogin};Password=${administratorPassword};Encrypt=True;'
+output connectionString string = 'Server=tcp:${sqlServer.name}.${environment().suffixes.sqlServerHostname},1433;Initial Catalog=${dbName};User ID=${administratorLogin};Password=${administratorPassword};Encrypt=True;'
