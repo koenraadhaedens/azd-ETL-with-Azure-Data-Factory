@@ -3,6 +3,12 @@ param storageLinkedServiceName string = 'AzureBlobStorageLinkedService'
 param sqlServerName string
 param sqlDatabaseName string
 
+// Data Factory resource
+resource dataFactory 'Microsoft.DataFactory/factories@2018-06-01' = {
+  name: dataFactoryName
+  location: resourceGroup().location
+}
+
 //  Linked Service for SQL Database
 resource linkedServiceSql 'Microsoft.DataFactory/factories/linkedServices@2018-06-01' = {
   parent: dataFactory
@@ -52,55 +58,8 @@ resource datasetSql 'Microsoft.DataFactory/factories/datasets@2018-06-01' = {
   }
 }
 
-// Simple Pipeline that copies from Blob to SQL
-resource pipeline 'Microsoft.DataFactory/factories/pipelines@2018-06-01' = {
-  name: 'etl-demo-pipeline'
-  parent: dataFactory
-  properties: {
-    description: 'Demo ETL pipeline to copy data from Blob Storage to SQL Database'
-    activities: [
-      {
-        name: 'CopyFromBlobToSQL'
-        type: 'Copy'
-        dependsOn: []
-        policy: {
-          timeout: '7.00:00:00'
-          retry: 0
-          retryIntervalInSeconds: 30
-          secureOutput: false
-          secureInput: false
-        }
-        typeProperties: {
-          source: {
-            type: 'DelimitedTextSource'
-          }
-          sink: {
-            type: 'SqlSink'
-          }
-        }
-        inputs: [
-          {
-            referenceName: 'InputBlobDataset'
-            type: 'DatasetReference'
-          }
-        ]
-        outputs: [
-          {
-            referenceName: 'OutputSQLDataset'
-            type: 'DatasetReference'
-          }
-        ]
-      }
-    ]
-  }
-}
 
-resource dataFactory 'Microsoft.DataFactory/factories@2018-06-01' = {
-  name: dataFactoryName
-  location: resourceGroup().location
-}
 
-output pipelineName string = pipeline.name
 output name string = dataFactory.name
 output id string = dataFactory.id
 
