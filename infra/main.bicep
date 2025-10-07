@@ -60,6 +60,7 @@ module adf 'modules/datafactory.bicep' = {
     dataFactoryName: adfName
     sqlServerName: sql.outputs.serverName
     sqlDatabaseName: sql.outputs.databaseName
+    storageAccountName: storage.outputs.name 
   }
 }
 

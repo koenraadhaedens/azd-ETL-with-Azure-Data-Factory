@@ -2,14 +2,27 @@ param dataFactoryName string
 param storageLinkedServiceName string = 'AzureBlobStorageLinkedService'
 param sqlServerName string
 param sqlDatabaseName string
+param storageAccountName string
 
-// Data Factory resource
+// 1️⃣ Data Factory resource
 resource dataFactory 'Microsoft.DataFactory/factories@2018-06-01' = {
   name: dataFactoryName
   location: resourceGroup().location
 }
 
-//  Linked Service for SQL Database
+// 2️⃣ Linked Service for Blob Storage
+resource linkedServiceBlob 'Microsoft.DataFactory/factories/linkedServices@2018-06-01' = {
+  parent: dataFactory
+  name: storageLinkedServiceName
+  properties: {
+    type: 'AzureBlobStorage'
+    typeProperties: {
+      connectionString: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage}'
+    }
+  }
+}
+
+// 3️⃣ Linked Service for SQL Database
 resource linkedServiceSql 'Microsoft.DataFactory/factories/linkedServices@2018-06-01' = {
   parent: dataFactory
   name: 'AzureSqlDatabaseLinkedService'
@@ -21,7 +34,7 @@ resource linkedServiceSql 'Microsoft.DataFactory/factories/linkedServices@2018-0
   }
 }
 
-// Dataset for Blob (CSV input)
+// 4️⃣ Dataset for Blob (CSV input)
 resource datasetBlob 'Microsoft.DataFactory/factories/datasets@2018-06-01' = {
   parent: dataFactory
   name: 'InputBlobDataset'
@@ -42,10 +55,10 @@ resource datasetBlob 'Microsoft.DataFactory/factories/datasets@2018-06-01' = {
   }
 }
 
-// Dataset for SQL (Output)
+// 5️⃣ Dataset for SQL (Output)
 resource datasetSql 'Microsoft.DataFactory/factories/datasets@2018-06-01' = {
-  name: 'OutputSQLDataset'
   parent: dataFactory
+  name: 'OutputSQLDataset'
   properties: {
     linkedServiceName: {
       referenceName: 'AzureSqlDatabaseLinkedService'
@@ -58,8 +71,6 @@ resource datasetSql 'Microsoft.DataFactory/factories/datasets@2018-06-01' = {
   }
 }
 
-
-
+// 6️⃣ (Optional) Output values
 output name string = dataFactory.name
 output id string = dataFactory.id
-
