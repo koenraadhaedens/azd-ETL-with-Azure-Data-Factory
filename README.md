@@ -86,7 +86,7 @@ Make sure you have:
 ### 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/<your-org>/azure-etl-adf-demo.git
+git clone https://github.com/koenraadhaedens/azd-ETL-with-Azure-Data-Factory
 cd azure-etl-adf-demo
 ```
 
@@ -187,7 +187,7 @@ You can extend this demo by:
 
 ---
 
-**Author:** _Your Name_  
+**Author:** Kenraad Haedens
 **Demo Type:** ETL with Azure Data Factory  
 **Deployment Tool:** Azure Developer CLI (azd)  
 **Duration:** ~15 minutes for full setup
