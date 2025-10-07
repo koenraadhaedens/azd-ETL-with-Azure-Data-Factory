@@ -1,5 +1,5 @@
 param dataFactoryName string
-param storageLinkedServiceName string = 'AzureBlobStorageLinkedService'
+param storageLinkedServiceName string = 'azureblobstoragelinkedservice'
 param sqlServerName string
 param sqlDatabaseName string
 param storageAccountName string
@@ -25,7 +25,7 @@ resource linkedServiceBlob 'Microsoft.DataFactory/factories/linkedServices@2018-
 // 3️⃣ Linked Service for SQL Database
 resource linkedServiceSql 'Microsoft.DataFactory/factories/linkedServices@2018-06-01' = {
   parent: dataFactory
-  name: 'AzureSqlDatabaseLinkedService'
+  name: 'azuresqldatabaselinkedservice'
   properties: {
     type: 'AzureSqlDatabase'
     typeProperties: {
@@ -61,7 +61,7 @@ resource datasetSql 'Microsoft.DataFactory/factories/datasets@2018-06-01' = {
   name: 'OutputSQLDataset'
   properties: {
     linkedServiceName: {
-      referenceName: 'AzureSqlDatabaseLinkedService'
+      referenceName: 'azuresqldatabaselinkedservice'
       type: 'LinkedServiceReference'
     }
     type: 'AzureSqlTable'
