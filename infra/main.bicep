@@ -63,13 +63,16 @@ module adf 'modules/datafactory.bicep' = {
   }
 }
 
-module pipeline 'modules/adf-pipeline.bicep' = {
+module adfPipeline 'modules/adf-pipeline.bicep' = {
   name: 'adfPipelineDeploy'
   scope: rg
   params: {
     dataFactoryName: adf.outputs.name
+    sqlServerName: sql.outputs.serverName
+    sqlDatabaseName: sql.outputs.databaseName
   }
 }
+
 
 output resourceGroupName string = rg.name
 output storageAccountName string = storage.outputs.name

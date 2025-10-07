@@ -1,25 +1,94 @@
-param name string
-param location string
-param storageAccountId string
+param dataFactoryName string
+param storageLinkedServiceName string = 'AzureBlobStorageLinkedService'
+param sqlServerName string
+param sqlDatabaseName string
 
-resource dataFactory 'Microsoft.DataFactory/factories@2018-06-01' = {
-  name: name
-  location: location
-  identity: {
-    type: 'SystemAssigned'
-  }
-}
-
-resource linkedServiceStorage 'Microsoft.DataFactory/factories/linkedServices@2018-06-01' = {
-  parent: dataFactory
-  name: 'AzureBlobStorageLinkedService'
+// 1️⃣ Linked Service for SQL Database
+resource linkedServiceSql 'Microsoft.DataFactory/factories/linkedServices@2018-06-01' = {
+  name: '${dataFactoryName}/AzureSqlDatabaseLinkedService'
   properties: {
-    type: 'AzureBlobStorage'
+    type: 'AzureSqlDatabase'
     typeProperties: {
-      connectionString: 'DefaultEndpointsProtocol=https;AccountName=${last(split(storageAccountId, '/'))};EndpointSuffix=${environment().suffixes.storage}'
+      connectionString: 'Server=tcp:${sqlServerName}.${environment().suffixes.sqlServerHostname},1433;Database=${sqlDatabaseName};Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication="SQL Password";'
     }
   }
 }
 
-output name string = dataFactory.name
-output id string = dataFactory.id
+// 2️⃣ Dataset for Blob (CSV input)
+resource datasetBlob 'Microsoft.DataFactory/factories/datasets@2018-06-01' = {
+  name: '${dataFactoryName}/InputBlobDataset'
+  properties: {
+    linkedServiceName: {
+      referenceName: storageLinkedServiceName
+      type: 'LinkedServiceReference'
+    }
+    type: 'DelimitedText'
+    typeProperties: {
+      location: {
+        type: 'AzureBlobStorageLocation'
+        folderPath: 'raw'
+      }
+      firstRowAsHeader: true
+      columnDelimiter: ','
+    }
+  }
+}
+
+// 3️⃣ Dataset for SQL (Output)
+resource datasetSql 'Microsoft.DataFactory/factories/datasets@2018-06-01' = {
+  name: '${dataFactoryName}/OutputSQLDataset'
+  properties: {
+    linkedServiceName: {
+      referenceName: 'AzureSqlDatabaseLinkedService'
+      type: 'LinkedServiceReference'
+    }
+    type: 'AzureSqlTable'
+    typeProperties: {
+      tableName: 'SalesFact'
+    }
+  }
+}
+
+// 4️⃣ Simple Pipeline that copies from Blob to SQL
+resource pipeline 'Microsoft.DataFactory/factories/pipelines@2018-06-01' = {
+  name: '${dataFactoryName}/etl-demo-pipeline'
+  properties: {
+    description: 'Demo ETL pipeline to copy data from Blob Storage to SQL Database'
+    activities: [
+      {
+        name: 'CopyFromBlobToSQL'
+        type: 'Copy'
+        dependsOn: []
+        policy: {
+          timeout: '7.00:00:00'
+          retry: 0
+          retryIntervalInSeconds: 30
+          secureOutput: false
+          secureInput: false
+        }
+        typeProperties: {
+          source: {
+            type: 'DelimitedTextSource'
+          }
+          sink: {
+            type: 'SqlSink'
+          }
+        }
+        inputs: [
+          {
+            referenceName: 'InputBlobDataset'
+            type: 'DatasetReference'
+          }
+        ]
+        outputs: [
+          {
+            referenceName: 'OutputSQLDataset'
+            type: 'DatasetReference'
+          }
+        ]
+      }
+    ]
+  }
+}
+
+output pipelineName string = pipeline.name
