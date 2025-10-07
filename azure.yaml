@@ -3,4 +3,4 @@ metadata:
   template: tdd-azd-azure-etl-adf-demo@1.0.0
 infra:
   provider: bicep
-  path: ./infra/main.bicep
+
