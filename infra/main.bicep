@@ -13,9 +13,6 @@ param location string
 @description('Password for the SQL Server administrator')
 param sqlAdminPassword string // user will be prompted during deployment
 
-@description('Current user object ID for setting as SQL Server AAD admin')
-param currentUserObjectId string = ''
-
 
 resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   name: 'rg-${environmentName}'
@@ -53,7 +50,6 @@ module sql 'modules/sql.bicep' = {
     dbName: sqlDbName
     location: location
     administratorPassword: sqlAdminPassword
-    currentUserObjectId: !empty(currentUserObjectId) ? currentUserObjectId : '00000000-0000-0000-0000-000000000000'
   }
 }
 
@@ -61,10 +57,6 @@ module sql 'modules/sql.bicep' = {
 module sqlTables 'modules/sql-tables-with-aad.bicep' = {
   name: 'sqlTablesDeploy'
   scope: rg
-  dependsOn: [
-    sql
-    adf // Need ADF to exist to get the managed identity
-  ]
   params: {
     sqlServerName: sql.outputs.serverName
     databaseName: sql.outputs.databaseName

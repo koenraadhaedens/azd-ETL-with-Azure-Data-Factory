@@ -5,12 +5,26 @@ param administratorLogin string = 'sqladminuser'
 @secure()
 param administratorPassword string
 
+// Azure AD admin configuration - these need to be provided as parameters
+param aadAdminLogin string
+param aadAdminObjectId string
+param aadAdminType string = 'User' // Can be 'User' or 'Group'
+
 resource sqlServer 'Microsoft.Sql/servers@2022-02-01-preview' = {
   name: name
   location: location
   properties: {
     administratorLogin: administratorLogin
     administratorLoginPassword: administratorPassword
+    // Enable Azure AD authentication
+    administrators: {
+      administratorType: 'ActiveDirectory'
+      azureADOnlyAuthentication: false // Allow both SQL and AAD auth
+      login: aadAdminLogin
+      sid: aadAdminObjectId
+      tenantId: tenant().tenantId
+      principalType: aadAdminType
+    }
   }
 }
 
