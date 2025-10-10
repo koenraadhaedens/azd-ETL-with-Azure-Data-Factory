@@ -26,10 +26,11 @@ resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
 
 // Variables for naming conventions
 var projectPrefix = toLower(environmentName)
-var storageName = take('${projectPrefix}store', 24)
-var sqlServerName = take('${projectPrefix}sql', 60)
+var uniqueSuffix = uniqueString(rg.id)
+var storageName = take('${projectPrefix}store${uniqueSuffix}', 24)
+var sqlServerName = take('${projectPrefix}sql${uniqueSuffix}', 60)
 var sqlDbName = 'salesdb'
-var adfName = take('${projectPrefix}adf', 60)
+var adfName = take('${projectPrefix}adf${uniqueSuffix}', 60)
 
 // Deploy the Storage Account
 module storage 'modules/storage.bicep' = {
