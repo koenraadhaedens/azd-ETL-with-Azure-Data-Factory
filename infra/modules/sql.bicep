@@ -5,6 +5,13 @@ param administratorLogin string = 'sqladminuser'
 @secure()
 param administratorPassword string
 
+@description('Array of IP ranges to allow for Azure Data Factory access')
+param dataFactoryIPRanges array = [
+  { start: '20.42.2.0', end: '20.42.2.255' }
+  { start: '20.42.4.0', end: '20.42.4.255' }
+  { start: '20.42.5.0', end: '20.42.5.255' }
+]
+
 resource sqlServer 'Microsoft.Sql/servers@2022-02-01-preview' = {
   name: name
   location: location
@@ -14,15 +21,19 @@ resource sqlServer 'Microsoft.Sql/servers@2022-02-01-preview' = {
   }
 }
 
-// Allow Azure services to access the server
-resource allowAzureServices 'Microsoft.Sql/servers/firewallRules@2022-02-01-preview' = {
+// Allow specific Azure Data Factory IP ranges for the region
+// Note: These IP ranges are region-specific. Update based on your deployment region.
+// For a complete list, see: https://docs.microsoft.com/en-us/azure/data-factory/data-movement-security-considerations
+resource allowDataFactoryIPs 'Microsoft.Sql/servers/firewallRules@2022-02-01-preview' = [for (ipRange, index) in dataFactoryIPRanges: {
   parent: sqlServer
-  name: 'AllowAzureServices'
+  name: 'AllowADF-${index}'
   properties: {
-    startIpAddress: '0.0.0.0'
-    endIpAddress: '0.0.0.0'
+    startIpAddress: ipRange.start
+    endIpAddress: ipRange.end
   }
-}
+}]
+
+
 
 resource sqlDb 'Microsoft.Sql/servers/databases@2022-02-01-preview' = {
   parent: sqlServer

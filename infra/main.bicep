@@ -13,6 +13,19 @@ param location string
 @description('Password for the SQL Server administrator')
 param sqlAdminPassword string // user will be prompted during deployment
 
+@description('Azure Data Factory IP ranges for SQL Server firewall. Update these based on your deployment region.')
+@metadata({
+  note: 'These IP ranges are region-specific for Azure Data Factory Integration Runtime'
+  documentation: 'https://docs.microsoft.com/en-us/azure/data-factory/data-movement-security-considerations#azure-ir-ip-addresses'
+  instructions: 'Replace with IP ranges for your specific Azure region where ADF is deployed'
+})
+param dataFactoryIPRanges array = [
+  { start: '20.42.2.0', end: '20.42.2.255' }   // East US ADF Integration Runtime IPs
+  { start: '20.42.4.0', end: '20.42.4.255' }   // East US ADF Integration Runtime IPs  
+  { start: '20.42.5.0', end: '20.42.5.255' }   // East US ADF Integration Runtime IPs
+  { start: '40.71.14.32', end: '40.71.14.63' } // East US ADF Integration Runtime IPs
+]
+
 
 resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   name: 'rg-${environmentName}'
@@ -51,6 +64,7 @@ module sql 'modules/sql.bicep' = {
     dbName: sqlDbName
     location: location
     administratorPassword: sqlAdminPassword
+    dataFactoryIPRanges: dataFactoryIPRanges
   }
 }
 
