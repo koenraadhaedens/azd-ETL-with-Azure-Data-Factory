@@ -41,24 +41,6 @@ A retail company collects daily sales data from multiple branches as CSV files s
           └──────────────────────────┘
 ```
 
----
-
-## 📁 Project Structure
-
-```
-azure-etl-adf-demo/
-│
-├── azd.yaml                # Azure Developer CLI config
-├── README.md               # This file
-└── infra/
-    ├── main.bicep          # Subscription-level deployment entry point
-    ├── modules/
-    │   ├── storage.bicep   # Storage account (Data Lake Gen2)
-    │   ├── sql.bicep       # SQL Server + Database
-    │   └── datafactory.bicep  # Azure Data Factory + Linked Service
-```
-
----
 
 ## 🧱 Deployed Resources
 
