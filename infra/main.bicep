@@ -38,12 +38,14 @@ resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
 
 
 // Variables for naming conventions
-var projectPrefix = toLower(environmentName)
+// Storage account names: 3-24 chars, lowercase letters and numbers only
+var storagePrefix = replace(replace(toLower(environmentName), '-', ''), '_', '') // Remove invalid chars
+var projectPrefix = toLower(environmentName) // For other resources (hyphens allowed)
 var uniqueSuffix = uniqueString(rg.id)
-var storageName = take('${projectPrefix}store${uniqueSuffix}', 24)
-var sqlServerName = take('${projectPrefix}sql${uniqueSuffix}', 60)
+var storageName = take('${storagePrefix}st${uniqueSuffix}', 24) // Shorter prefix to fit in 24 chars
+var sqlServerName = take('${projectPrefix}-sql-${uniqueSuffix}', 60)
 var sqlDbName = 'salesdb'
-var adfName = take('${projectPrefix}adf${uniqueSuffix}', 60)
+var adfName = take('${projectPrefix}-adf-${uniqueSuffix}', 60)
 
 // Deploy the Storage Account
 module storage 'modules/storage.bicep' = {
