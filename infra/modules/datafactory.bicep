@@ -25,14 +25,16 @@ resource linkedServiceBlob 'Microsoft.DataFactory/factories/linkedServices@2018-
   }
 }
 
-// 3️⃣ Linked Service for SQL Database
+// 3️⃣ Linked Service for SQL Database (using Managed Identity)
 resource linkedServiceSql 'Microsoft.DataFactory/factories/linkedServices@2018-06-01' = {
   parent: dataFactory
   name: 'azuresqldatabaselinkedservice'
   properties: {
     type: 'AzureSqlDatabase'
     typeProperties: {
-      connectionString: 'Server=tcp:${sqlServerName}.${environment().suffixes.sqlServerHostname},1433;Database=${sqlDatabaseName};Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication="SQL Password";'
+      connectionString: 'Server=tcp:${sqlServerName}.${environment().suffixes.sqlServerHostname},1433;Database=${sqlDatabaseName};Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
+      // Use managed identity authentication
+      servicePrincipalCredentialType: 'ManagedServiceIdentity'
     }
   }
 }

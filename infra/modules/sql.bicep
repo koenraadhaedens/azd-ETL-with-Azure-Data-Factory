@@ -5,12 +5,33 @@ param administratorLogin string = 'sqladminuser'
 @secure()
 param administratorPassword string
 
+// Get the current user's object ID to set as AAD admin
+param currentUserObjectId string
+
 resource sqlServer 'Microsoft.Sql/servers@2022-02-01-preview' = {
   name: name
   location: location
   properties: {
     administratorLogin: administratorLogin
     administratorLoginPassword: administratorPassword
+    // Enable Azure AD authentication
+    administrators: {
+      administratorType: 'ActiveDirectory'
+      azureADOnlyAuthentication: false // Allow both SQL and AAD auth
+      login: 'sqladmin' // This will be replaced with actual AAD admin
+      sid: currentUserObjectId
+      tenantId: tenant().tenantId
+    }
+  }
+}
+
+// Allow Azure services to access the server
+resource allowAzureServices 'Microsoft.Sql/servers/firewallRules@2022-02-01-preview' = {
+  parent: sqlServer
+  name: 'AllowAzureServices'
+  properties: {
+    startIpAddress: '0.0.0.0'
+    endIpAddress: '0.0.0.0'
   }
 }
 
