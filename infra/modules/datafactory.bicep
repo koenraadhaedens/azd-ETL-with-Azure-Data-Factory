@@ -13,14 +13,14 @@ resource dataFactory 'Microsoft.DataFactory/factories@2018-06-01' = {
   }
 }
 
-// 2️⃣ Linked Service for Blob Storage
+// 2️⃣ Linked Service for Blob Storage (using Managed Identity)
 resource linkedServiceBlob 'Microsoft.DataFactory/factories/linkedServices@2018-06-01' = {
   parent: dataFactory
   name: storageLinkedServiceName
   properties: {
     type: 'AzureBlobStorage'
     typeProperties: {
-      connectionString: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage}'
+      serviceEndpoint: 'https://${storageAccountName}.blob.${environment().suffixes.storage}'
     }
   }
 }

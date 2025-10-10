@@ -80,17 +80,6 @@ module adf 'modules/datafactory.bicep' = {
   }
 }
 
-module adfPipeline 'modules/adf-pipeline.bicep' = {
-  name: 'adfPipelineDeploy'
-  scope: rg
-  dependsOn: [
-    adf   
-  ]
-  params: {
-    dataFactoryName: adfName
-  }
-}
-
 module adfIdentity 'modules/adf-identity.bicep' = {
   name: 'adfIdentitySetup'
   scope: rg
@@ -100,6 +89,19 @@ module adfIdentity 'modules/adf-identity.bicep' = {
   params: {
     dataFactoryName: adfName
     storageAccountId: storage.outputs.id
+  }
+}
+
+module adfPipeline 'modules/adf-pipeline.bicep' = {
+  name: 'adfPipelineDeploy'
+  scope: rg
+  dependsOn: [
+    adf
+    sqlTables   // Ensure database setup is complete
+    adfIdentity // Ensure identity permissions are set up
+  ]
+  params: {
+    dataFactoryName: adfName
   }
 }
 
