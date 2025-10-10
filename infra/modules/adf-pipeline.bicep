@@ -1,33 +1,26 @@
 param dataFactoryName string
-param sqlServerName string
-param sqlDatabaseName string
 param storageLinkedServiceName string = 'azureblobstoragelinkedservice'
 
-// 1️⃣ Linked Service for Blob Storage
-resource linkedServiceStorage 'Microsoft.DataFactory/factories/linkedServices@2018-06-01' = {
-  name: '${dataFactoryName}/${storageLinkedServiceName}'
-  properties: {
-    type: 'AzureBlobStorage'
-    typeProperties: {
-      connectionString: 'DefaultEndpointsProtocol=https;AccountName=${dataFactoryName};EndpointSuffix=core.windows.net;'
-    }
-  }
+// Reference existing Data Factory
+resource dataFactory 'Microsoft.DataFactory/factories@2018-06-01' existing = {
+  name: dataFactoryName
 }
 
-// 2️⃣ Linked Service for SQL Database
-resource linkedServiceSql 'Microsoft.DataFactory/factories/linkedServices@2018-06-01' = {
-  name: '${dataFactoryName}/azuresqldatabaselinkedservice'
-  properties: {
-    type: 'AzureSqlDatabase'
-    typeProperties: {
-      connectionString: 'Server=tcp:${sqlServerName}.${environment().suffixes.sqlServerHostname},1433;Database=${sqlDatabaseName};Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication="SQL Password";'
-    }
-  }
+// Reference existing linked services (don't create them here as they're created in datafactory.bicep)
+resource linkedServiceStorage 'Microsoft.DataFactory/factories/linkedServices@2018-06-01' existing = {
+  parent: dataFactory
+  name: storageLinkedServiceName
+}
+
+resource linkedServiceSql 'Microsoft.DataFactory/factories/linkedServices@2018-06-01' existing = {
+  parent: dataFactory
+  name: 'azuresqldatabaselinkedservice'
 }
 
 // 3️⃣ Dataset for Blob (CSV input)
 resource datasetBlob 'Microsoft.DataFactory/factories/datasets@2018-06-01' = {
-  name: '${dataFactoryName}/InputBlobDataset'
+  parent: dataFactory
+  name: 'InputBlobDataset'
   dependsOn: [ linkedServiceStorage ]  
   properties: {
     linkedServiceName: {
@@ -48,7 +41,8 @@ resource datasetBlob 'Microsoft.DataFactory/factories/datasets@2018-06-01' = {
 
 // 4️⃣ Dataset for SQL (Output)
 resource datasetSql 'Microsoft.DataFactory/factories/datasets@2018-06-01' = {
-  name: '${dataFactoryName}/OutputSQLDataset'
+  parent: dataFactory
+  name: 'OutputSQLDataset'
   dependsOn: [ linkedServiceSql ]   
   properties: {
     linkedServiceName: {
@@ -64,7 +58,8 @@ resource datasetSql 'Microsoft.DataFactory/factories/datasets@2018-06-01' = {
 
 // 5️⃣ Pipeline
 resource pipeline 'Microsoft.DataFactory/factories/pipelines@2018-06-01' = {
-  name: '${dataFactoryName}/etl-demo-pipeline'
+  parent: dataFactory
+  name: 'etl-demo-pipeline'
   properties: {
     description: 'ETL pipeline to copy data from Blob Storage to SQL Database'
     activities: [

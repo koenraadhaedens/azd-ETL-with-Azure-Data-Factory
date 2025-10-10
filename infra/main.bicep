@@ -88,8 +88,6 @@ module adfPipeline 'modules/adf-pipeline.bicep' = {
   ]
   params: {
     dataFactoryName: adfName
-    sqlServerName: sql.outputs.serverName
-    sqlDatabaseName: sql.outputs.databaseName
   }
 }
 
