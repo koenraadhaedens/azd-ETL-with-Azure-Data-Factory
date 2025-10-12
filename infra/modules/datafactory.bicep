@@ -14,6 +14,8 @@ resource dataFactory 'Microsoft.DataFactory/factories@2018-06-01' = {
   }
   properties: {
     publicNetworkAccess: 'Enabled'
+    // Enable interactive authoring by default
+    version: '2018-06-01'
   }
 }
 
@@ -24,10 +26,10 @@ resource managedVirtualNetwork 'Microsoft.DataFactory/factories/managedVirtualNe
   properties: {}
 }
 
-// Self-hosted Integration Runtime for private connectivity
+// Custom Managed Integration Runtime for private connectivity
 resource integrationRuntime 'Microsoft.DataFactory/factories/integrationRuntimes@2018-06-01' = {
   parent: dataFactory
-  name: 'AutoResolveIntegrationRuntime'
+  name: 'ManagedVnetIntegrationRuntime'
   properties: {
     type: 'Managed'
     managedVirtualNetwork: {
@@ -37,6 +39,10 @@ resource integrationRuntime 'Microsoft.DataFactory/factories/integrationRuntimes
     typeProperties: {
       computeProperties: {
         location: 'AutoResolve'
+        dataFlowProperties: {
+          computeType: 'General'
+          coreCount: 8
+        }
       }
     }
   }
@@ -71,7 +77,7 @@ resource linkedServiceStorage 'Microsoft.DataFactory/factories/linkedServices@20
       connectionString: 'DefaultEndpointsProtocol=https;AccountName=${last(split(storageAccountId, '/'))};EndpointSuffix=${environment().suffixes.storage}'
     }
     connectVia: {
-      referenceName: integrationRuntime.name
+      referenceName: !empty(subnetId) ? integrationRuntime.name : 'AutoResolveIntegrationRuntime'
       type: 'IntegrationRuntimeReference'
     }
   }
@@ -87,7 +93,7 @@ resource linkedServiceSql 'Microsoft.DataFactory/factories/linkedServices@2018-0
       connectionString: 'Server=tcp:${sqlServerName}${environment().suffixes.sqlServerHostname},1433;Database=salesdb;Encrypt=True;'
     }
     connectVia: {
-      referenceName: integrationRuntime.name
+      referenceName: !empty(subnetId) ? integrationRuntime.name : 'AutoResolveIntegrationRuntime'
       type: 'IntegrationRuntimeReference'
     }
   }
