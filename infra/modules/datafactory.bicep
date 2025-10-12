@@ -14,8 +14,6 @@ resource dataFactory 'Microsoft.DataFactory/factories@2018-06-01' = {
   }
   properties: {
     publicNetworkAccess: 'Enabled'
-    // Enable interactive authoring by default
-    version: '2018-06-01'
   }
 }
 
