@@ -3,6 +3,8 @@ param location string
 param storageAccountId string
 param sqlServerId string = ''
 param sqlServerName string = ''
+param subnetId string = ''
+param vnetName string = ''
 
 resource dataFactory 'Microsoft.DataFactory/factories@2018-06-01' = {
   name: name
@@ -91,5 +93,63 @@ resource linkedServiceSql 'Microsoft.DataFactory/factories/linkedServices@2018-0
   }
 }
 
+// Private endpoint for Azure Data Factory
+resource adfPrivateEndpoint 'Microsoft.Network/privateEndpoints@2023-09-01' = if (!empty(subnetId)) {
+  name: '${name}-pe'
+  location: location
+  properties: {
+    subnet: {
+      id: subnetId
+    }
+    privateLinkServiceConnections: [
+      {
+        name: '${name}-pe-connection'
+        properties: {
+          privateLinkServiceId: dataFactory.id
+          groupIds: [
+            'dataFactory'
+          ]
+        }
+      }
+    ]
+  }
+}
+
+// Private DNS zone for Azure Data Factory
+resource adfPrivateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = if (!empty(subnetId)) {
+  name: 'privatelink.datafactory.azure.net'
+  location: 'global'
+}
+
+// Link private DNS zone to VNet
+resource adfPrivateDnsZoneLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = if (!empty(subnetId) && !empty(vnetName)) {
+  parent: adfPrivateDnsZone
+  name: '${vnetName}-link'
+  location: 'global'
+  properties: {
+    registrationEnabled: false
+    virtualNetwork: {
+      id: resourceId('Microsoft.Network/virtualNetworks', vnetName)
+    }
+  }
+}
+
+// Private DNS zone group for ADF
+resource adfPrivateDnsZoneGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2023-09-01' = if (!empty(subnetId)) {
+  parent: adfPrivateEndpoint
+  name: 'default'
+  properties: {
+    privateDnsZoneConfigs: [
+      {
+        name: 'privatelink-datafactory-azure-net'
+        properties: {
+          privateDnsZoneId: adfPrivateDnsZone.id
+        }
+      }
+    ]
+  }
+}
+
 output name string = dataFactory.name
 output id string = dataFactory.id
+output privateEndpointId string = !empty(subnetId) ? adfPrivateEndpoint.id : ''

@@ -73,6 +73,8 @@ module adf 'modules/datafactory.bicep' = {
     storageAccountId: storage.outputs.id
     sqlServerId: sql.outputs.serverId
     sqlServerName: sql.outputs.serverName
+    subnetId: vnet.outputs.adfSubnetId
+    vnetName: vnet.outputs.vnetName
   }
 }
 
@@ -83,3 +85,4 @@ output sqlServerName string = sql.outputs.serverName
 output sqlServerFqdn string = sql.outputs.fullyQualifiedDomainName
 output sqlDatabaseName string = sql.outputs.databaseName
 output dataFactoryName string = adf.outputs.name
+output adfPrivateEndpointId string = adf.outputs.privateEndpointId

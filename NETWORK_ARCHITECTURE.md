@@ -20,11 +20,13 @@ The solution includes:
 - **Firewall**: Azure services allowed via `0.0.0.0` rule
 
 ### 🏭 **Azure Data Factory**
-- **Public Access**: Enabled
-- **Managed Virtual Network**: Configured for private connectivity
+- **Public Access**: Enabled (for management)
+- **Private Endpoint**: Connected to `adf-subnet` for private access to ADF service
+- **Private DNS Zone**: `privatelink.datafactory.azure.net`
+- **Managed Virtual Network**: Configured for private connectivity to data sources
 - **Managed Private Endpoints**: 
-  - SQL Server private endpoint
-  - Storage Account private endpoint
+  - SQL Server private endpoint (outbound from ADF)
+  - Storage Account private endpoint (outbound from ADF)
 - **Integration Runtime**: AutoResolve with managed VNet
 - **Linked Services**: Pre-configured for SQL and Storage with private connectivity
 
@@ -77,14 +79,21 @@ The solution includes:
 ## 📊 **Data Flow Architecture**
 
 ```
-[Data Sources] 
-       ↓ (Public Internet)
-[Azure Data Factory] 
-       ↓ (Private Endpoint via Managed VNet)
+[Management/External Access]
+       ↓ (Public Internet OR Private Endpoint)
+[Azure Data Factory Service] 
+       ↓ (Managed Private Endpoints via Managed VNet)
 [Azure SQL Database] ←→ [Storage Account (Data Lake)]
-       ↑ (Private Endpoints in VNet subnets)
+       ↑ (All connected via Private Endpoints in VNet subnets)
 [Virtual Network with Private DNS Zones]
 ```
+
+### **Private Endpoint Coverage**
+- **ADF Service**: Private endpoint in `adf-subnet` (for accessing ADF APIs privately)
+- **ADF → SQL**: Managed private endpoint (for ADF to connect to SQL privately)
+- **ADF → Storage**: Managed private endpoint (for ADF to connect to Storage privately)
+- **Direct SQL Access**: Private endpoint in `sql-subnet` (for direct SQL management)
+- **Direct Storage Access**: Private endpoint in `storage-subnet` (for direct Storage management)
 
 ## 🔧 **Benefits of This Architecture**
 
