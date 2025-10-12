@@ -29,42 +29,57 @@ var storageName = take('${projectPrefix}store', 24)
 var sqlServerName = take('${projectPrefix}sql', 60)
 var sqlDbName = 'salesdb'
 var adfName = take('${projectPrefix}adf', 60)
+var vnetName = '${projectPrefix}-vnet'
 
-// Deploy the Storage Account
-module storage 'modules/storage.bicep' = {
-  name: 'storageDeploy'
+// Deploy Virtual Network
+module vnet 'modules/vnet.bicep' = {
   scope: rg
   params: {
-    name: storageName
+    name: vnetName
     location: location
   }
 }
 
-// Deploy SQL Server + Database
+// Deploy the Storage Account with VNet integration
+module storage 'modules/storage.bicep' = {
+  scope: rg
+  params: {
+    name: storageName
+    location: location
+    subnetId: vnet.outputs.storageSubnetId
+    vnetName: vnet.outputs.vnetName
+  }
+}
+
+// Deploy SQL Server + Database with VNet integration
 module sql 'modules/sql.bicep' = {
-  name: 'sqlDeploy'
   scope: rg
   params: {
     name: sqlServerName
     dbName: sqlDbName
     location: location
     administratorPassword: sqlAdminPassword
+    subnetId: vnet.outputs.sqlSubnetId
+    vnetName: vnet.outputs.vnetName
   }
 }
 
-// Deploy Azure Data Factory
+// Deploy Azure Data Factory with managed VNet and private endpoints
 module adf 'modules/datafactory.bicep' = {
-  name: 'adfDeploy'
   scope: rg
   params: {
     name: adfName
     location: location
     storageAccountId: storage.outputs.id
+    sqlServerId: sql.outputs.serverId
+    sqlServerName: sql.outputs.serverName
   }
 }
 
 output resourceGroupName string = rg.name
+output vnetName string = vnet.outputs.vnetName
 output storageAccountName string = storage.outputs.name
 output sqlServerName string = sql.outputs.serverName
+output sqlServerFqdn string = sql.outputs.fullyQualifiedDomainName
 output sqlDatabaseName string = sql.outputs.databaseName
 output dataFactoryName string = adf.outputs.name
